@@ -6,11 +6,15 @@ import (
 	"net/http"
 )
 
-func initRounter() *http.ServeMux {
+type handlerV1 interface {
+	GetHelloWorldHandler(w http.ResponseWriter, r *http.Request)
+}
+
+func initRounter(rv1 handlerV1) *http.ServeMux {
 	mux := http.NewServeMux()
 	healthCheck(mux)
 	readinessCheck(mux)
-	routerGroupV1(mux)
+	routerGroupV1(mux, rv1)
 	return mux
 }
 
@@ -36,22 +40,13 @@ func readinessCheck(mux *http.ServeMux) {
 	})
 }
 
-func routerGroupV1(mux *http.ServeMux) {
+func routerGroupV1(mux *http.ServeMux, hv1 handlerV1) {
 	apiV1 := "/api/v1"
 	// propagator := propagation.NewCompositeTextMapPropagator(
 	// 	propagation.TraceContext{},
 	// 	propagation.Baggage{},
 	// )
 
-	handler := func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			w.Write([]byte("Hello,World!"))
-		default:
-			w.WriteHeader(http.StatusNotFound)
-		}
-	}
-
-	mux.Handle(fmt.Sprint(apiV1, "/hello"), middleware.MiddleWareOne(handler))
+	mux.Handle(fmt.Sprint(apiV1, "/hello"), middleware.MiddleWareOne(hv1.GetHelloWorldHandler))
 
 }
