@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"go_http_barko/constant"
 	"log"
 	"path/filepath"
 	"sync"
@@ -12,25 +13,36 @@ import (
 )
 
 type Config struct {
-	App App
-	Log Log
+	App      App
+	Log      Log
+	Database DatabaseConfig
+}
+
+type Secret struct {
+	Database DatabaseSecret
 }
 
 var config Config
+var secret Secret
 var syncOnce Once
 
-func InitConfig(ctx context.Context) *Config {
+func InitConfig(ctx context.Context) (*Config, *Secret) {
 	syncOnce.Do(initConfig, ctx)
-	return &config
+	return &config, &secret
 }
 
 func initConfig(ctx context.Context) {
-	absPath, _ := filepath.Abs("./env/config.env")
-	if err := godotenv.Load(absPath); err != nil {
+	configPath, _ := filepath.Abs(constant.CONFIG_PATH + constant.CONFIG_FILE)
+	secretPath, _ := filepath.Abs(constant.SECRET_PATH + constant.SECRET_FILE)
+	if err := godotenv.Load(configPath, secretPath); err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
 	if err := env.Parse(&config); err != nil {
+		log.Fatalf("%+v\n", err)
+	}
+
+	if err := env.Parse(&secret); err != nil {
 		log.Fatalf("%+v\n", err)
 	}
 

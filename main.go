@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"go_http_barko/config"
 	logger "go_http_barko/utility/logger"
 	"go_http_barko/utility/tracer"
@@ -14,11 +16,13 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 func main() {
 	ctx := context.Background()
-	cfg := config.InitConfig(ctx)
+	cfg, secret := config.InitConfig(ctx)
 	logger.InitLogger(cfg)
 	defer logger.Sync()
 
@@ -29,8 +33,10 @@ func main() {
 		}
 	}()
 
+	sqlDb := initDatabase(ctx, cfg, secret)
+
 	// repositoriesV1
-	repositoriesV1 := repositoriesV1.New()
+	repositoriesV1 := repositoriesV1.New(sqlDb)
 
 	// servicesV1
 	servicesV1 := servicesV1.New(repositoriesV1)
@@ -68,5 +74,30 @@ func httpServe(ctx context.Context, server *http.Server, router http.Handler) {
 	logger.Info(ctx, "========== Server is starting ==========")
 	if err := server.ListenAndServe(); err != nil {
 		logger.Fatal(ctx, err)
+		return
 	}
+}
+
+func initDatabase(ctx context.Context, cfg *config.Config, secret *config.Secret) *sql.DB {
+	dbCfg := mysql.Config{
+		Net:       "tcp",
+		Addr:      fmt.Sprintf("%v:%v", secret.Database.Host, secret.Database.Port),
+		User:      secret.Database.User,
+		Passwd:    secret.Database.Password,
+		DBName:    cfg.Database.Name,
+		ParseTime: true,
+		Loc:       time.Local,
+	}
+
+	sqlDb, err := sql.Open("mysql", dbCfg.FormatDSN())
+	if err != nil {
+		logger.Fatal(ctx, err)
+		return nil
+	}
+
+	sqlDb.SetConnMaxLifetime(cfg.Database.ConnMaxLifeTime)
+	sqlDb.SetMaxOpenConns(cfg.Database.MaxOpenConns)
+	sqlDb.SetMaxIdleConns(cfg.Database.MaxIdleConns)
+
+	return sqlDb
 }

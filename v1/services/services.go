@@ -1,9 +1,12 @@
 package servicesV1
 
-import "context"
+import (
+	"context"
+	"go_http_barko/v1/models"
+)
 
 type repoV1Interface interface {
-	GetHelloRepo(ctx context.Context, str string) string
+	GetAllUserRepo(ctx context.Context) ([]models.UserInfo, error)
 }
 
 type svcV1 struct {

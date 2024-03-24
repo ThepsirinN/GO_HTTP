@@ -12,7 +12,7 @@ import (
 )
 
 type handlerV1 interface {
-	GetHelloWorldHandler(w http.ResponseWriter, r *http.Request)
+	GetAllUserHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func initRounter(rv1 handlerV1) http.Handler {
@@ -55,6 +55,6 @@ func routerGroupV1(mux *http.ServeMux, hv1 handlerV1) {
 	apiV1 := "/api/v1"
 
 	// mux.Handle(fmt.Sprint(apiV1, "/hello"), middleware.MiddleWareOne(hv1.GetHelloWorldHandler))
-	otelhandle.OtelHttpHandleFunc(fmt.Sprint(apiV1, "/hello"), mux, middleware.MiddlewareOne(hv1.GetHelloWorldHandler))
+	otelhandle.OtelHttpHandleFunc(fmt.Sprint(apiV1, "/hello"), mux, middleware.MiddlewareOne(hv1.GetAllUserHandler))
 
 }

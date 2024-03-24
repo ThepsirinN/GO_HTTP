@@ -2,10 +2,11 @@ package handlersV1
 
 import (
 	"context"
+	"go_http_barko/v1/domains"
 )
 
 type svcV1I interface {
-	GetHelloWorldSvc(ctx context.Context) string
+	GetAllUserSvc(ctx context.Context) ([]domains.UserInfoResponseData, error)
 }
 
 type handlersV1 struct {
