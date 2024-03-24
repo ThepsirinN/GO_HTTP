@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"go_http_barko/config"
 	logger "go_http_barko/utility/logger"
+	"go_http_barko/utility/tracer"
 	handlersV1 "go_http_barko/v1/handlers"
 	repositoriesV1 "go_http_barko/v1/repositories"
 	servicesV1 "go_http_barko/v1/services"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,6 +22,13 @@ func main() {
 	logger.InitLogger(cfg)
 	defer logger.Sync()
 
+	tp := tracer.InitTraceProvider(ctx, cfg.Log.Env, "test123")
+	defer func() {
+		if err := tp.Shutdown(ctx); err != nil {
+			logger.Fatal(ctx, err)
+		}
+	}()
+
 	// repositoriesV1
 	repositoriesV1 := repositoriesV1.New()
 
@@ -28,11 +36,14 @@ func main() {
 	servicesV1 := servicesV1.New(repositoriesV1)
 
 	// handlersV1
-	handlersV1 := handlersV1.New(ctx, servicesV1)
+	handlersV1 := handlersV1.New(servicesV1)
 
 	router := initRounter(handlersV1)
 	server := &http.Server{
-		Addr: cfg.App.Port,
+		Addr:         cfg.App.Port,
+		BaseContext:  func(net.Listener) context.Context { return ctx }, // very important for tracing
+		ReadTimeout:  time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	go httpServe(ctx, server, router)
@@ -41,21 +52,21 @@ func main() {
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT, syscall.SIGTSTP)
 	<-quit
 
-	fmt.Println("recieve signal: shutting down...")
+	logger.Info(ctx, "recieve signal: shutting down...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		fmt.Println(err)
+		logger.Error(ctx, err)
 	}
 
 }
 
-func httpServe(ctx context.Context, server *http.Server, router *http.ServeMux) {
+func httpServe(ctx context.Context, server *http.Server, router http.Handler) {
 	server.Handler = router
 	logger.Info(ctx, "========== Server is starting ==========")
 	if err := server.ListenAndServe(); err != nil {
-		fmt.Println(err)
+		logger.Fatal(ctx, err)
 	}
 }

@@ -2,7 +2,6 @@ package logger
 
 import (
 	"context"
-	"fmt"
 	"go_http_barko/config"
 	"log"
 	"os"
@@ -91,9 +90,14 @@ func Warn(ctx context.Context, msg string, field ...zapcore.Field) {
 	logger.Warn(msg, field...)
 }
 
-func Error(ctx context.Context, msg string, field ...zapcore.Field) {
+func Error(ctx context.Context, err error, field ...zapcore.Field) {
 	addTraceFromCtx(ctx, &field)
-	logger.Error(msg, field...)
+	logger.Error(err.Error(), field...)
+}
+
+func Fatal(ctx context.Context, err error, field ...zapcore.Field) {
+	addTraceFromCtx(ctx, &field)
+	logger.Fatal(err.Error(), field...)
 }
 
 func Sync() {
@@ -107,17 +111,13 @@ type traceInfo struct {
 
 func getTraceFromCtx(ctx context.Context) (isSpanContextValid bool, t traceInfo) {
 	spanCtx := trace.SpanFromContext(ctx).SpanContext()
-	fmt.Println(ctx)
-	fmt.Printf("%+v\n", spanCtx)
-	fmt.Printf("%+v\n", spanCtx.HasSpanID())
-	fmt.Printf("%+v\n", spanCtx.HasTraceID())
-	fmt.Println(spanCtx.IsValid())
+
 	if spanCtx.IsValid() {
 		t.traceId = spanCtx.TraceID().String()
 		t.spanId = spanCtx.SpanID().String()
 	}
 
-	return false, t
+	return spanCtx.IsValid(), t
 }
 
 func addTraceFromCtx(ctx context.Context, field *[]zapcore.Field) {

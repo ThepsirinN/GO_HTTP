@@ -9,13 +9,11 @@ type svcV1I interface {
 }
 
 type handlersV1 struct {
-	ctx context.Context
 	svc svcV1I
 }
 
-func New(ctx context.Context, svcV1 svcV1I) *handlersV1 {
+func New(svcV1 svcV1I) *handlersV1 {
 	return &handlersV1{
-		ctx: ctx,
 		svc: svcV1,
 	}
 }

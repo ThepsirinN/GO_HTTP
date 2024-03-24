@@ -1,15 +1,13 @@
 package middleware
 
 import (
-	"fmt"
+	"go_http_barko/utility/logger"
 	"net/http"
 )
 
-func MiddleWareOne(next http.HandlerFunc) http.HandlerFunc {
+func MiddlewareOne(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println()
-		fmt.Println("Middleware Execute")
-		fmt.Println()
+		logger.Info(r.Context(), "Middleware Execute!")
 		next.ServeHTTP(w, r)
 	})
 }

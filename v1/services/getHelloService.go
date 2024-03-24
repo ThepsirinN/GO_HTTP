@@ -3,5 +3,5 @@ package servicesV1
 import "context"
 
 func (s *svcV1) GetHelloWorldSvc(ctx context.Context) string {
-	return "Hello, World!"
+	return s.repoV1I.GetHelloRepo(ctx, "Hello World!")
 }
