@@ -1,0 +1,6 @@
+{"level":"INFO","timestamp":"24 Mar 2024 12:37:41+07:00","caller":"Go_HTTP/main.go:68","message":"========== Server is starting =========="}
+{"level":"INFO","timestamp":"24 Mar 2024 12:37:43+07:00","caller":"middleware/middleware.go:10","message":"Middleware Execute!","traceId":"be72f4c0be29482d4e9b9223f0c92a8e","spanId":"f6fd1b75686716cf"}
+{"level":"INFO","timestamp":"24 Mar 2024 12:37:43+07:00","caller":"handlers/getHelloHandler.go:10","message":"EiEi","traceId":"be72f4c0be29482d4e9b9223f0c92a8e","spanId":"f6fd1b75686716cf"}
+{"level":"INFO","timestamp":"24 Mar 2024 12:38:16+07:00","caller":"Go_HTTP/main.go:55","message":"recieve signal: shutting down..."}
+{"level":"FATAL","timestamp":"24 Mar 2024 12:38:16+07:00","caller":"Go_HTTP/main.go:70","message":"http: Server closed","stacktrace":"main.httpServe\n\t/home/thepsirin/Go_HTTP/main.go:70"}
+logger/logger.go:100\nmain.httpServe\n\t/home/thepsirin/Go_HTTP/main.go:70"}

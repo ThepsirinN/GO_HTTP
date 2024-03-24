@@ -43,7 +43,7 @@ func InitLogger(cfg *config.Config) {
 		core = zapcore.NewTee(coreLog)
 	}
 
-	logger = zap.New(core)
+	logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zapcore.ErrorLevel))
 
 }
 
